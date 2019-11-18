@@ -3,6 +3,8 @@
 // User should be able to input function they want done with values
 
 
+import com.sun.deploy.security.SelectableSecurityManager;
+
 public class BST {
     public static void main(String[] args) {
         BinaryTree tree = new BinaryTree(1);
@@ -17,25 +19,40 @@ public class BST {
             root = new Node(value);
         }
 
-        private void add(Node root, int value) {
-            if (root == null)
-                root.data = value;
-            else if (root.data > value)
-                add(root.right, value);
-            else
-                add(root.left, value);
+        public boolean contains(int value) {
+            return contains(root, value);
         }
 
-        private boolean find(Node root, int value) {
+        private boolean contains(Node root, int value) {
             if (root == null)
                 return false;
-            else if (root.data == value) {
+            else if (root.data == value)
                 return true;
-            }
             else if (root.data > value)
-                return find(root.right,value);
+                return contains(root.left,value);
             else
-                return find(root.left,value);
+                return contains(root.right,value);
+        }
+
+        public void add(int value) {
+            add(root, value);
+        }
+
+        private void add(Node root, int value) {
+            if (root == null)
+                root = new Node(value);
+            else if (root.data > value) {
+                if (root.left == null)
+                    root.left = new Node(value);
+                else
+                    add(root.left,value);
+            }
+            else {
+                if (root.right == null)
+                    root.right = new Node(value);
+                else
+                    add(root.right,value);
+            }
         }
     }
 
@@ -45,9 +62,13 @@ public class BST {
         Node right;
 
         private Node(int root) {
-            data = root;
-            left = null;
-            right = null;
+            this(root,null,null);
+        }
+
+        private Node(int root, Node left, Node right) {
+            root = root;
+            left = left;
+            right = right;
         }
     }
 }
