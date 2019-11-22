@@ -40,20 +40,53 @@ public class BST {
 
         private void add(Node root, int value) {
             if (root == null)
-                root = new Node(value);
+                this.root = new Node(value);
             else if (root.data > value) {
                 if (root.left == null)
                     root.left = new Node(value);
                 else
                     add(root.left,value);
             }
-            else {
+            else if (root.data < value) {
                 if (root.right == null)
                     root.right = new Node(value);
                 else
                     add(root.right,value);
             }
         }
+
+        private void add(Node node) {
+            add(root,node.data);
+            add(root.right);
+            add(root.left);
+        }
+
+        public void remove(int value) {
+            remove(root, value);
+        }
+
+        private void remove(Node root, int value) {
+            if (root.data > value) {
+                remove(root.left, value);
+            } else if (root.data < value) {
+                remove(root.right, value);
+            } else {                                                                                                    // Found value to remove
+                add(root.left);
+                add(root.right);
+                this.root = null;
+            }
+        }
+
+        public void printSideways(Node root, int level) {
+            if (root != null) {
+                printSideways(root.right, level + 1);
+                for (int i = 0; i < level; i++) {
+                    System.out.print(" ");
+                }
+                System.out.println(root.data);
+                printSideways(root.left, level + 1);
+                }
+            }
     }
 
     private static class Node {
