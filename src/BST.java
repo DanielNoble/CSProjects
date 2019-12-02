@@ -10,10 +10,15 @@ import java.util.List;
 
 public class BST {
     public static void main(String[] args) {
-        BinaryTree tree = new BinaryTree(2);
-        tree.add(1);
-        tree.add(3);
-        tree.add(4);
+        BinaryTree tree = new BinaryTree(10);
+        tree.add(6);
+        tree.add(14);
+        tree.add(7);
+        tree.add(11);
+        tree.add(15);
+        tree.add(17);
+        tree.add(18);
+        tree.add(16);
         tree.print();
     }
 
@@ -27,7 +32,7 @@ public class BST {
         }
 
         public boolean contains(int value) {
-            return contains(root, value);
+            return contains(root, value);                                                                               // User in main doesn't call with node, so create new method to access node
         }
 
         private boolean contains(Node root, int value) {
@@ -55,12 +60,6 @@ public class BST {
             return node;
         }
 
-        private void add(Node node) {
-            add(root,node.data);
-            add(root.right);
-            add(root.left);
-        }
-
         public void remove(int value) {
             remove(root, value);
         }
@@ -73,20 +72,20 @@ public class BST {
             } else if (root.data < value) {
                 root.right = remove(root.right, value);
             } else {                                                                                                    // Found value to remove
-                if (root.right == null)
+                if (root.right == null)                                                                                 // If there's no right, return left
                     return root.left;
-                else if (root.left == null)
+                else if (root.left == null)                                                                             // If there's no left, return right
                     return root.right;
                 else {
-                    root.data = getMin(root.right);
-                    remove(root.right, root.data);
+                    root.data = getMin(root.right);                                                                     // Set the smallest value greater than the removed value for minimum reorganization
+                    remove(root.right, root.data);                                                                      // Remove the previous value from its original spot
                 }
             }
             return root;
         }
 
 
-        private int getMin(Node node) {
+        private int getMin(Node node) {                                                                                 // Proceeds left recursively until data is null
             if (node.left == null)
                 return node.data;
             else
@@ -99,7 +98,7 @@ public class BST {
             else {
                 int lDepth = maxDepth(node.left);
                 int rDepth = maxDepth(node.right);
-                return (lDepth > rDepth ? lDepth : rDepth) + 1;
+                return (lDepth > rDepth ? lDepth : rDepth) + 1;                                                         // Depth
             }
         }
 
@@ -209,8 +208,7 @@ public class BST {
         }
 
         private List<Node> createNextRow(List<Node> oldNodes) {
-            List<Node> newNodes = new ArrayList<Node>(2 * oldNodes.size());
-            boolean result = false;
+            List<Node> newNodes = new ArrayList<>(2 * oldNodes.size());
 
             for (Node node : oldNodes) {
                 if (node == null) {
@@ -218,8 +216,6 @@ public class BST {
                     newNodes.add(null);
                 }
                 else {
-                    if (node.left != null || node.right != null)
-                        result = true;
                     newNodes.add(node.left);
                     newNodes.add(node.right);
                 }
