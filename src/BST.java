@@ -2,20 +2,27 @@
 // Create methods to search for a number, remove a number, add a number, and print the tree
 // User should be able to input function they want done with values
 
+import org.w3c.dom.ls.LSOutput;
 
-import com.sun.deploy.security.SelectableSecurityManager;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class BST {
     public static void main(String[] args) {
-        BinaryTree tree = new BinaryTree(1);
-
+        BinaryTree tree = new BinaryTree(2);
+        tree.add(1);
+        tree.add(3);
+        tree.add(4);
+        tree.print();
     }
 
 
     private static class BinaryTree {
         Node root;
+        static final int MINSPACE = 1;
 
-        private BinaryTree(int value) {
+        public BinaryTree(int value) {
             root = new Node(value);
         }
 
@@ -35,24 +42,17 @@ public class BST {
         }
 
         public void add(int value) {
-            add(root, value);
+            root = add(root, value);
         }
 
-        private void add(Node root, int value) {
-            if (root == null)
-                this.root = new Node(value);
-            else if (root.data > value) {
-                if (root.left == null)
-                    root.left = new Node(value);
-                else
-                    add(root.left,value);
-            }
-            else if (root.data < value) {
-                if (root.right == null)
-                    root.right = new Node(value);
-                else
-                    add(root.right,value);
-            }
+        private Node add(Node node, int value) {
+            if (node == null)
+                node = new Node(value);
+            else if (node.data > value)
+                node.left = add(node.left, value);
+            else
+                node.right = add(node.right, value);
+            return node;
         }
 
         private void add(Node node) {
@@ -65,28 +65,167 @@ public class BST {
             remove(root, value);
         }
 
-        private void remove(Node root, int value) {
+        private Node remove(Node root, int value) {
+            if (root == null)
+                return null;
             if (root.data > value) {
-                remove(root.left, value);
+                root.left = remove(root.left, value);
             } else if (root.data < value) {
-                remove(root.right, value);
+                root.right = remove(root.right, value);
             } else {                                                                                                    // Found value to remove
-                add(root.left);
-                add(root.right);
-                this.root = null;
+                if (root.right == null)
+                    return root.left;
+                else if (root.left == null)
+                    return root.right;
+                else {
+                    root.data = getMin(root.right);
+                    remove(root.right, root.data);
+                }
+            }
+            return root;
+        }
+
+
+        private int getMin(Node node) {
+            if (node.left == null)
+                return node.data;
+            else
+                return getMin(node.left);
+        }
+
+        private int maxDepth(Node node) {                                                                               // print helper class
+            if (node == null)
+                return 0;
+            else {
+                int lDepth = maxDepth(node.left);
+                int rDepth = maxDepth(node.right);
+                return (lDepth > rDepth ? lDepth : rDepth) + 1;
             }
         }
 
-        public void printSideways(Node root, int level) {
-            if (root != null) {
-                printSideways(root.right, level + 1);
-                for (int i = 0; i < level; i++) {
-                    System.out.print(" ");
+        private int leftDepth(Node node) {                                                                              // print helper class
+            if (node == null)
+                return 0;
+            else {
+                return leftDepth(node.left) + 1;
+            }
+        }
+
+        private int getMaxPrintWidth(Node node) {
+            if (node == null)
+                return 0;
+
+            int self = getPrintWidth(node);
+            int left = getMaxPrintWidth(node.left);
+            int right = getMaxPrintWidth(node.right);
+
+            return Math.max(Math.max(self, left), right);
+        }
+
+            private int getPrintWidth(Node node) {
+                if (node == null)
+                    return 0;
+
+                return Integer.toString(node.data).length();
+            }
+
+        private int calcLeadingSpace(int height, int maxWidth) {
+            int factor = (int) (Math.pow(2,height) - 1);
+            return factor * (maxWidth + MINSPACE) / 2;
+        }
+
+        private int calcBetweenSpaces(int height, int maxWidth) {
+            int factor = (int) (Math.pow(2,height));
+            return (factor - 1) * maxWidth + factor * MINSPACE;
+        }
+
+        public void print() {
+            if (root == null)
+                System.out.println("Binary tree is empty");
+            else {
+                int leftDepth = leftDepth(root);
+                int maxDepth = maxDepth(root);
+                int maxPrintWidth = getMaxPrintWidth(root);
+
+                List<Node> nodes = Collections.singletonList(root);
+                printHelper(nodes, maxPrintWidth, maxDepth - 1, maxDepth - leftDepth);
+            }
+        }
+
+        private void printHelper(List<Node> nodes, int maxWidth, int height, int leftmostHeight) {
+            int leadingSpace = calcLeadingSpace(height, maxWidth);
+            int betweenSpace = calcBetweenSpaces(height, maxWidth);
+            int leftLeadingSpace = calcLeadingSpace(leftmostHeight,maxWidth);
+            int index = 0;
+            int length = nodes.size();
+
+            if (leadingSpace >= leftLeadingSpace)
+                printSpaces(leadingSpace - leftLeadingSpace);
+            else {
+                leftLeadingSpace -= leadingSpace;
+                while (leftLeadingSpace > 0) {
+                    leftLeadingSpace -= maxWidth + betweenSpace;
+                    index++;
                 }
-                System.out.println(root.data);
-                printSideways(root.left, level + 1);
+
+                if (leftLeadingSpace < 0)
+                    printSpaces(-leftLeadingSpace);
+            }
+
+            for (; index < length; index++) {
+                printValue(nodes.get(index),maxWidth);
+                printSpaces(betweenSpace);
+            }
+
+            System.out.print("\n");
+
+
+            if (height != 0) {
+                List<Node> newNodes = createNextRow(nodes);
+                printHelper(newNodes, maxWidth, height - 1, leftmostHeight);
+            }
+        }
+
+        private void printSpaces(int spaces) {
+            for (int i = 0; i < spaces; i++)
+                System.out.print(" ");
+        }
+
+        private void printValue(Node node, int maxWidth) {
+            if (node == null)
+                printSpaces(maxWidth);
+            else {
+                int printWidth = getPrintWidth(node);
+                int spaces = maxWidth - printWidth;
+                if (spaces == 0)
+                    System.out.print(node.data);
+                else  {
+                    int halfSpaces = spaces / 2;
+                    printSpaces(halfSpaces);
+                    System.out.print(node.data);
+                    printSpaces(halfSpaces + ((spaces % 2 == 0) ? 0 : 1));
                 }
             }
+        }
+
+        private List<Node> createNextRow(List<Node> oldNodes) {
+            List<Node> newNodes = new ArrayList<Node>(2 * oldNodes.size());
+            boolean result = false;
+
+            for (Node node : oldNodes) {
+                if (node == null) {
+                    newNodes.add(null);
+                    newNodes.add(null);
+                }
+                else {
+                    if (node.left != null || node.right != null)
+                        result = true;
+                    newNodes.add(node.left);
+                    newNodes.add(node.right);
+                }
+            }
+            return newNodes;
+        }
     }
 
     private static class Node {
@@ -94,14 +233,14 @@ public class BST {
         Node left;
         Node right;
 
-        private Node(int root) {
-            this(root,null,null);
+        private Node(int data) {
+            this(data,null,null);
         }
 
-        private Node(int root, Node left, Node right) {
-            root = root;
-            left = left;
-            right = right;
+        private Node(int data, Node left, Node right) {
+            this.data = data;
+            this.left = left;
+            this.right = right;
         }
     }
 }
